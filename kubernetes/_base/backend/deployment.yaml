@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: color-api
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: color-api
+      tier: backend
+
+  template:
+    metadata:
+      labels:
+        app: color-api
+        tier: backend
+
+    spec:
+      containers:
+        - name: color-api-nodejs-container
+          image: abuelnaga0/color-api:v2.0.0
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+
+          envFrom:
+            - configMapRef:
+                name: backend-config
+
+          env:
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: DB_NAME
+                  name: app-db-secrets
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: USERNAME
+                  name: app-db-secrets
+
+            - name: DB_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PASSWORD
+                  name: app-db-secrets
+
+          ports:
+            - containerPort: 80
+              protocol: TCP

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database-statefulset
+
+spec:
+  template:
+    spec:
+      containers:
+        - name: mongo-container
+          resources:
+            requests:
+              memory: "512Mi"
+            limits:
+              memory: "1Gi"
+
+  volumeClaimTemplates:
+    - metadata:
+        name: db-data-volume
+        labels:
+          app: color-api
+
+      spec:
+        storageClassName: standard-rwo
+        accessModes:
+          - ReadWriteOnce
+
+        resources:
+          requests:
+            storage: 10Gi

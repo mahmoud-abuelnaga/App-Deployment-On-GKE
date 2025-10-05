@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: color-api-nodejs-container
+          image: abuelnaga0/color-api:v2.1.0-dev
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"

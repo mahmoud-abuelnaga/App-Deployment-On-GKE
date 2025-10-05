@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database-statefulset
+  labels:
+    app: color-api
+spec:
+  selector:
+    matchLabels:
+      app: color-api
+      tier: database
+
+  serviceName: db-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: color-api
+        tier: database
+
+    spec:
+      containers:
+        - name: mongo-container
+          image: mongo:8.0.14-noble
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: USERNAME
+                  name: db-root-secrets
+
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PASSWORD
+                  name: db-root-secrets
+
+            - name: MONGO_INITDB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: DB_NAME
+                  name: app-db-secrets
+
+            - name: MONGO_INITDB_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  key: USERNAME
+                  name: app-db-secrets
+
+            - name: MONGO_INITDB_DATABASE_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PASSWORD
+                  name: app-db-secrets
+
+          ports:
+            - containerPort: 27017
+              protocol: TCP
+
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: db-init-config-volume
+
+            - mountPath: /data/db
+              name: db-data-volume
+
+      volumes:
+        - name: db-init-config-volume
+          configMap:
+            name: db-config
+
+  volumeClaimTemplates:
+    - metadata:
+        name: db-data-volume
+        labels:
+          app: color-api
+
+      spec:
+        storageClassName: premium-rwo
+        accessModes:
+          - ReadWriteOnce
+
+        resources:
+          requests:
+            storage: 10Gi
